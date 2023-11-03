@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16.0-alpine3.18
+    container_name: postgres16.0-alpine3.18
+    volumes:
+      - ./dev/postgresql/data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DATABASE=postgres
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=passw0rd
+      - POSTGRES_ROOT_PASSWORD=passw0rd
