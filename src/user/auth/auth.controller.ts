@@ -1,13 +1,55 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ParseEnumPipe,
+  Post,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignupDto } from '../auth.dto';
+import { GenerateProductKeyDto, SigninDto, SignupDto } from '../auth.dto';
+import { UserType } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signup')
-  signup(@Body() body: SignupDto) {
-    return this.authService.signup();
+  @Post('signup/:userType')
+  async signup(
+    @Body() body: SignupDto,
+    @Params('userType', new ParseEnumPipe(UserType)) userType: UserType,
+  ) {
+    if (userType !== UserType.BUYER) {
+      if (!body.productKey) {
+        throw new UnauthorizedException();
+      }
+
+      const validProductKey = `${body.email}-${userType}-${process.env.PRODUCT_KEY_SECRET}`;
+
+      const isValidProductKey = await bcrypt.compare(
+        validProductKey,
+        body.productKey,
+      );
+      if (!isValidProductKey) {
+        throw new UnauthorizedException();
+      }
+    }
+    return this.authService.signup(body);
   }
+
+  @Post('signin')
+  signin(@Body() body: SigninDto) {
+    return this.authService.signin(body);
+  }
+
+  @Post('key')
+  generateProductKey(@Body() { userType, email }: GenerateProductKeyDto) {
+    return this.authService.generateProductKey(email, userType);
+  }
+}
+function Params(
+  arg0: string,
+  arg1: ParseEnumPipe<{ BUYER: 'BUYER'; REALTOR: 'REALTOR'; ADMIN: 'ADMIN' }>,
+): (target: AuthController, propertyKey: 'signup', parameterIndex: 1) => void {
+  throw new Error('Function not implemented.');
 }
