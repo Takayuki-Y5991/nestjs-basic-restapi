@@ -34,6 +34,16 @@ interface UpdateHomeParam {
   propertyType?: PropertyType;
 }
 
+export const homeSelect = {
+  id: true,
+  address: true,
+  city: true,
+  price: true,
+  propertyType: true,
+  number_of_bathrooms: true,
+  number_of_bedrooms: true,
+};
+
 @Injectable()
 export class HomeService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -41,12 +51,7 @@ export class HomeService {
   async getHomes(filter: GetHomesParam): Promise<HomeResponseDto[]> {
     const homes = await this.prismaService.home.findMany({
       select: {
-        id: true,
-        address: true,
-        price: true,
-        propertyType: true,
-        number_of_bathrooms: true,
-        number_of_bedrooms: true,
+        ...homeSelect,
         images: {
           select: {
             url: true,
@@ -70,12 +75,7 @@ export class HomeService {
   async getHomeById(id: number) {
     const home = await this.prismaService.home.findUnique({
       select: {
-        id: true,
-        address: true,
-        price: true,
-        propertyType: true,
-        number_of_bathrooms: true,
-        number_of_bedrooms: true,
+        ...homeSelect,
         images: {
           select: {
             url: true,
