@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Get,
+  Param,
   ParseEnumPipe,
   Post,
   UnauthorizedException,
@@ -9,6 +11,7 @@ import { AuthService } from './auth.service';
 import { GenerateProductKeyDto, SigninDto, SignupDto } from '../auth.dto';
 import { UserType } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { User } from '../decorator/user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -17,7 +20,7 @@ export class AuthController {
   @Post('signup/:userType')
   async signup(
     @Body() body: SignupDto,
-    @Params('userType', new ParseEnumPipe(UserType)) userType: UserType,
+    @Param('userType', new ParseEnumPipe(UserType)) userType: UserType,
   ) {
     if (userType !== UserType.BUYER) {
       if (!body.productKey) {
@@ -46,10 +49,9 @@ export class AuthController {
   generateProductKey(@Body() { userType, email }: GenerateProductKeyDto) {
     return this.authService.generateProductKey(email, userType);
   }
-}
-function Params(
-  arg0: string,
-  arg1: ParseEnumPipe<{ BUYER: 'BUYER'; REALTOR: 'REALTOR'; ADMIN: 'ADMIN' }>,
-): (target: AuthController, propertyKey: 'signup', parameterIndex: 1) => void {
-  throw new Error('Function not implemented.');
+
+  @Get('meta')
+  me(@User() user: UserType) {
+    return user;
+  }
 }
